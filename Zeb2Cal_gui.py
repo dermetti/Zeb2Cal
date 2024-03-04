@@ -58,14 +58,14 @@ class Input_Frame(tk.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
-        label1 = tk.Label(self, text="Name und Dienstplan eingeben", font=("Century Gothic", 16, "bold"), fg="dark blue")
+        label1 = tk.Label(self, text="Dienstplan einlesen", font=("Century Gothic", 16, "bold"), fg="dark blue")
         label1.grid(column=0, row=0, pady=10, columnspan=2)
 
-        label2 = tk.Label(self, text="Ihr Name wie am Dienstplan", font=("Helvetica", 9))
-        label2.grid(column=0, row=1, pady=10, padx=10, sticky=tk.E)
+        #label2 = tk.Label(self, text="Ihr Name wie am Dienstplan", font=("Helvetica", 9))
+        #label2.grid(column=0, row=1, pady=10, padx=10, sticky=tk.E)
 
-        entry1 = tk.Entry(self)
-        entry1.grid(column=1, row=1, pady=10, padx=10, sticky=tk.W)
+        #entry1 = tk.Entry(self)
+        #entry1.grid(column=1, row=1, pady=10, padx=10, sticky=tk.W)
 
         button1 = ttk.Button(self, text="Dienstplan öffnen", command=lambda: self.open_file())
         button1.grid(column=0, row=2, columnspan=2, pady=10)
@@ -82,7 +82,6 @@ class Input_Frame(tk.Frame):
         # Instance variables
         self.file_path = file_path
         self.analyze_btn = analyze_btn
-        self.entry1 = entry1
         self.error_message = error_message
         self.parent = parent
 
@@ -93,24 +92,17 @@ class Input_Frame(tk.Frame):
             self.analyze_btn["state"] = "normal"
 
     def analyze(self):
-        if self.entry1.get() == "":
-            self.error_message["text"] = "Fehler: Name nicht angegeben"
+        self.error_message["text"] = ""
+        schedule.shifts, schedule.month, schedule.year, schedule.name = parse_pdf(schedule.pdf_file)
+        if not schedule.shifts or not schedule.month or not schedule.year:
+            self.error_message["text"] = "Fehler: PDF kann nicht gelesen werden"
         else:
-            self.error_message["text"] = ""
-            schedule.name = self.entry1.get()
-            schedule.table, schedule.month, schedule.year, schedule.names, schedule.firstshift, schedule.lastshift = parse_pdf(schedule.pdf_file)
-            if not schedule.table or not schedule.month or not schedule.year or not schedule.names or not schedule.firstshift or not schedule.lastshift:
-                self.error_message["text"] = "Fehler: PDF kann nicht gelesen werden"
-            else:
-                schedule.index = check_name(schedule.name, schedule.names)
-                if not schedule.index:
-                    self.parent.raise_frame(self.parent.name_frame)
-                else:
-                    schedule.shifts, schedule.bad_shifts = extract_schedule(schedule.table, schedule.index, schedule.firstshift, schedule.lastshift)
-                    if schedule.bad_shifts:
-                        self.parent.raise_frame(self.parent.shifts_frame)
-                    else:
-                        self.parent.raise_frame(self.parent.export_frame)
+            self.parent.raise_frame(self.parent.export_frame)
+#            schedule.shifts, schedule.bad_shifts = extract_schedule(schedule.table)
+#            if schedule.bad_shifts:
+#                self.parent.raise_frame(self.parent.shifts_frame)
+#            else:
+#                self.parent.raise_frame(self.parent.export_frame)
 
 
 class Name_Frame(tk.Frame):
@@ -176,7 +168,7 @@ class Export_Frame(tk.Frame):
 
         def table(self, *args):
             self.parent.reconfigure()
-            self.label2["text"]=f"Dienstplan für {schedule.month} {schedule.year}"
+            self.label2["text"]=f"Dienstplan für {schedule.month}.{schedule.year}"
             for i in range(2):
                 for j in range(len(schedule.shifts)):
                     if i == 0:
@@ -187,7 +179,7 @@ class Export_Frame(tk.Frame):
                         l.grid(row=i, column=j, sticky="nsew")
 
         def export(self):
-            c = ics_exporter(schedule.shifts, schedule.name, schedule.month, schedule.year)
+            c = ics_exporter(schedule.shifts, schedule.month, schedule.year)
             file_path = fd.asksaveasfilename(title="Dienstplan speichern", initialdir="/", initialfile=f"Dienstplan_{schedule.name}_{schedule.month}_{schedule.year}", filetypes=[("ICS Datei", "*.ics")], defaultextension=".ics")
             cal = c.serialize().split()      
             if file_path:          
