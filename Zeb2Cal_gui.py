@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog as fd
-from tkinter import ttk
+# from tkinter import ttk
+import ttkbootstrap as ttk
 from Zeb2Cal_Functions import *
 
 
@@ -21,17 +22,17 @@ class Schedule:
 schedule = Schedule()
 
 
-class App(tk.Tk):
+class App(ttk.Window):
     def __init__(self):
-        super().__init__()
-        self.title("AIRCal")
+        super().__init__(themename = "journal")
+        self.title("Zeb2Cal")
         self.geometry("600x400")
         #self.iconbitmap(r'.\AIRCal_icon.ico')
         self.resizable(False, False)
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        label = tk.Label(self, text="AIRCal ICS Kalender Export", font=("Century Gothic", 24, "bold"), fg="dark blue")
+        label = ttk.Label(self, text="Zeb2Cal ICS Kalender Export", font=("default", 24, "bold"), bootstyle="primary")
         label.grid(row=0, column=0, pady=10)
 
         self.input_frame = Input_Frame(self)
@@ -42,7 +43,7 @@ class App(tk.Tk):
         self.shifts_frame = Shifts_Frame(self)
         
     def raise_frame(self, frame):
-        frame.configure(highlightbackground="grey", highlightthickness=1)
+ #       frame.configure(highlightbackground="grey", highlightthickness=1)
         frame.grid(row=1, column=0, sticky="nsew", pady=10, padx=10)
         frame.tkraise()
 
@@ -50,15 +51,15 @@ class App(tk.Tk):
         self.geometry("800x400")
 
 
-class Input_Frame(tk.Frame):
+class Input_Frame(ttk.Labelframe):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, text = "einlesen")
 
         # widgets
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
-        label1 = tk.Label(self, text="Dienstplan einlesen", font=("Century Gothic", 16, "bold"), fg="dark blue")
+        label1 = ttk.Label(self, text="Dienstplan einlesen", font=("default", 16, "bold"), bootstyle="dark")
         label1.grid(column=0, row=0, pady=10, columnspan=2)
 
         #label2 = tk.Label(self, text="Ihr Name wie am Dienstplan", font=("Helvetica", 9))
@@ -70,13 +71,13 @@ class Input_Frame(tk.Frame):
         button1 = ttk.Button(self, text="Dienstplan öffnen", command=lambda: self.open_file())
         button1.grid(column=0, row=2, columnspan=2, pady=10)
 
-        file_path = tk.Label(self, text=f"Datei: nicht angegeben", font=("Helvetica", 9), bg="white")
+        file_path = ttk.Label(self, text=f"Datei: nicht angegeben", font=("default", 9), bootstyle="info")
         file_path.grid(column=0, row=3, columnspan=2, pady=10)
 
         analyze_btn = ttk.Button(self, text="Scannen", command=lambda: self.analyze(), state="disabled")
         analyze_btn.grid(column=0, row=4, columnspan=2, pady=10)
 
-        error_message = tk.Label(self, text="", font=("Helvetica", 9), fg="red")
+        error_message = ttk.Label(self, text="", font=("default", 9), bootstyle="danger")
         error_message.grid(column=0, row=5, columnspan=2, pady=10)
 
         # Instance variables
@@ -105,7 +106,7 @@ class Input_Frame(tk.Frame):
 #                self.parent.raise_frame(self.parent.export_frame)
 
 
-class Name_Frame(tk.Frame):
+class Name_Frame(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.grid_columnconfigure(0, weight=1)
@@ -144,20 +145,20 @@ class Name_Frame(tk.Frame):
         self.namebox["values"]=sorted_names
 
 
-class Export_Frame(tk.Frame):
+class Export_Frame(ttk.Labelframe):
         def __init__(self, parent):
-            super().__init__(parent)
+            super().__init__(parent, text = "exportieren" )
             self.grid_columnconfigure(0, weight=1)
 
             self.bind("<Expose>", self.table)
 
-            label1 = tk.Label(self, text="Bitte Daten vor Export kontrollieren", font=("Helvetica", 11, "bold"))
+            label1 = ttk.Label(self, text="Bitte Daten vor Export kontrollieren", font=("default", 11, "bold"), bootstyle="dark")
             label1.grid(column=0, row=0, pady=10)
 
-            self.label2 = tk.Label(self, text="", font=("Helvetica", 11, "bold"))
+            self.label2 = ttk.Label(self, text="", font=("default", 11, "bold"), bootstyle="dark")
             self.label2.grid(column=0, row=1, pady=10)
 
-            self.frame = tk.Frame(master=self)
+            self.frame = ttk.Frame(master=self)
             self.frame.grid(column=0, row=2, pady=10)
 
             button = ttk.Button(self, text="Als ICS exportieren", command=self.export)
@@ -172,10 +173,10 @@ class Export_Frame(tk.Frame):
             for i in range(2):
                 for j in range(len(schedule.shifts)):
                     if i == 0:
-                        l = tk.Label(master=self.frame, text=f"{(j + 1):02d}.", relief="ridge")
+                        l = ttk.Label(master=self.frame, text=f"{(j + 1):02d}.", relief="ridge", bootstyle="dark", padding=2)
                         l.grid(row=i, column=j, sticky="nsew")
                     else:
-                        l = tk.Label(master=self.frame, text=f"{schedule.shifts[j]}", relief="ridge")
+                        l = ttk.Label(master=self.frame, text=f"{schedule.shifts[j]}", relief="ridge", bootstyle="dark", padding=2)
                         l.grid(row=i, column=j, sticky="nsew")
 
         def export(self):
@@ -190,7 +191,7 @@ class Export_Frame(tk.Frame):
             self.parent.destroy()
 
 
-class Shifts_Frame(tk.Frame):
+class Shifts_Frame(ttk.Frame):
         def __init__(self, parent):
             super().__init__(parent)
             self.grid_columnconfigure(0, weight=1)
