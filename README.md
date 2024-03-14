@@ -7,15 +7,15 @@
 Zeb2Cal ist ein Programm welches einen PDF Dienstplan von Zerberus ausliest und für einen einzelnen Mitarbeiter in eine ICS Datei umwandelt, welche in einem Kalenderprogramm importiert werden kann.
 
 ### Download:
-Die aktuellste Version von AIRCal kann [hier]() heruntergeladen werden.
+Die aktuellste Version von Zeb2Cal kann [hier]() heruntergeladen werden.
 
 Beim Download erscheint eine Warnung, dass das Programm verdächtig ist und der Download zunächst blockiert wurde. Diese Warnung muss bestätigt werden um die Datei herunterzuladen.
 
-### AIRCal unter Windows installieren:
-Beim Ersten Öffnen von AIRCal erscheint erneut eine Warnung welche auch bestätigt werden muss. Nach dem Bestätigen werden Windows Nutzer durch die Installation geführt.
+### Zeb2Cal unter Windows installieren:
+Beim Ersten Öffnen von Zeb2Cal erscheint erneut eine Warnung welche auch bestätigt werden muss. Nach dem Bestätigen werden Windows Nutzer durch die Installation geführt.
 
-### AIRCal verwenden:
-AIRCal benötigt als Eingabe den Dienstplan als PDF Datei. Dieser kann über Zerberus erstellt werden. 
+### Zeb2Cal verwenden:
+Zeb2Cal benötigt als Eingabe den Dienstplan als PDF Datei. Dieser kann über Zerberus erstellt werden. 
 
 Der Export des Dienstplans erfolgt als ICS Datei. Diese ICS Datei kann in alle gängigen Kalenderprogramme importiert werden, **in der Regel durch anklicken der ICS Datei**. Sollte dies nicht funktionieren können folgende Anleitungen evtl. weiterhelfen:
 

@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog as fd
-# from tkinter import ttk
 import ttkbootstrap as ttk
 from Zeb2Cal_Functions import *
+import webbrowser
 
 
 class Schedule:
@@ -27,7 +27,6 @@ class App(ttk.Window):
         super().__init__(themename = "journal")
         self.title("Zeb2Cal")
         self.geometry("600x400")
-        #self.iconbitmap(r'.\AIRCal_icon.ico')
         self.resizable(False, False)
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -38,12 +37,9 @@ class App(ttk.Window):
         self.input_frame = Input_Frame(self)
         self.raise_frame(self.input_frame)
 
-        self.name_frame = Name_Frame(self)
         self.export_frame = Export_Frame(self)
-        self.shifts_frame = Shifts_Frame(self)
         
     def raise_frame(self, frame):
- #       frame.configure(highlightbackground="grey", highlightthickness=1)
         frame.grid(row=1, column=0, sticky="nsew", pady=10, padx=10)
         frame.tkraise()
 
@@ -59,26 +55,30 @@ class Input_Frame(ttk.Labelframe):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
+        rowcount = 0
         label1 = ttk.Label(self, text="Dienstplan einlesen", font=("default", 16, "bold"), bootstyle="dark")
-        label1.grid(column=0, row=0, pady=10, columnspan=2)
+        label1.grid(column=0, row=rowcount, pady=10, columnspan=2)
 
-        #label2 = tk.Label(self, text="Ihr Name wie am Dienstplan", font=("Helvetica", 9))
-        #label2.grid(column=0, row=1, pady=10, padx=10, sticky=tk.E)
+        rowcount+=1
+        button1 = ttk.Button(self, text="Dienstplan suchen", command=lambda: self.open_file())
+        button1.grid(column=0, row=rowcount, columnspan=2, pady=10)
 
-        #entry1 = tk.Entry(self)
-        #entry1.grid(column=1, row=1, pady=10, padx=10, sticky=tk.W)
-
-        button1 = ttk.Button(self, text="Dienstplan öffnen", command=lambda: self.open_file())
-        button1.grid(column=0, row=2, columnspan=2, pady=10)
-
+        rowcount+=1
         file_path = ttk.Label(self, text=f"Datei: nicht angegeben", font=("default", 9), bootstyle="info")
-        file_path.grid(column=0, row=3, columnspan=2, pady=10)
+        file_path.grid(column=0, row=rowcount, columnspan=2, pady=10)
 
+        rowcount+=1
         analyze_btn = ttk.Button(self, text="Scannen", command=lambda: self.analyze(), state="disabled")
-        analyze_btn.grid(column=0, row=4, columnspan=2, pady=10)
+        analyze_btn.grid(column=0, row=rowcount, columnspan=2, pady=10)
 
+        rowcount+=1
+        link1 = ttk.Label(self, text="Anleitung", cursor="hand2", bootstyle="info-inverse", padding=5)
+        link1.grid(column=0, row=rowcount, columnspan=2, pady=10)
+        link1.bind("<Button-1>", lambda _: self.callback("https://github.com/dermetti/Zeb2Cal?tab=readme-ov-file#readme"))
+
+        rowcount+=1
         error_message = ttk.Label(self, text="", font=("default", 9), bootstyle="danger")
-        error_message.grid(column=0, row=5, columnspan=2, pady=10)
+        error_message.grid(column=0, row=rowcount, columnspan=2, pady=10)
 
         # Instance variables
         self.file_path = file_path
@@ -86,63 +86,25 @@ class Input_Frame(ttk.Labelframe):
         self.error_message = error_message
         self.parent = parent
 
+    def callback(_, url):
+        webbrowser.open_new(url)
+
     def open_file(self):
         schedule.pdf_file = fd.askopenfilename(title="Dienstplan öffnen", initialdir="/", filetypes=[("PDF Datei", "*.pdf")])
         self.file_path["text"] = f"Datei: {schedule.pdf_file}"
         if schedule.pdf_file[-4:] == ".pdf":
             self.analyze_btn["state"] = "normal"
 
-    def analyze(self):
+    def analyze(self, f=None):
+        if f:
+            schedule.pdf_file=f
         self.error_message["text"] = ""
         schedule.shifts, schedule.month, schedule.year, schedule.name = parse_pdf(schedule.pdf_file)
         if not schedule.shifts or not schedule.month or not schedule.year:
             self.error_message["text"] = "Fehler: PDF kann nicht gelesen werden"
         else:
             self.parent.raise_frame(self.parent.export_frame)
-#            schedule.shifts, schedule.bad_shifts = extract_schedule(schedule.table)
-#            if schedule.bad_shifts:
-#                self.parent.raise_frame(self.parent.shifts_frame)
-#            else:
-#                self.parent.raise_frame(self.parent.export_frame)
 
-
-class Name_Frame(ttk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.grid_columnconfigure(0, weight=1)
-
-        label1 = tk.Label(self, text="Name konnte nicht gefunden werden, bitte aus Liste auswählen", font=("Helvetica", 11, "bold"), fg="red")
-        label1.grid(column=0, row=0, pady=10)
-
-        self.namebox = ttk.Combobox(self, textvariable=None, postcommand=self.update)
-        self.namebox['state'] = 'readonly'
-        self.namebox.grid(column=0, row=1, pady=10)
-
-        button = ttk.Button(self, text="Bestätigen", command=self.ex_check_name)
-        button.grid(column=0, row=2, pady=10)
-
-        self.error_message = tk.Label(self, text="", font=("Helvetica", 9), fg="red")
-        self.error_message.grid(column=0, row=3, pady=10)
-
-        # variables
-        self.parent = parent
-
-    def ex_check_name(self):
-        if self.namebox.get():
-            schedule.name = self.namebox.get()
-            schedule.index = check_name(schedule.name, schedule.names)
-            schedule.shifts, schedule.bad_shifts = extract_schedule(schedule.table, schedule.index)
-            if schedule.bad_shifts:
-                self.parent.raise_frame(self.parent.shifts_frame)
-            else:
-                self.parent.raise_frame(self.parent.export_frame)
-        else:
-            self.error_message["text"]="Bitte Name auswählen"
-
-    def update(self):
-        title_names = [i.title() for i in schedule.names]
-        sorted_names = sorted(title_names)
-        self.namebox["values"]=sorted_names
 
 
 class Export_Frame(ttk.Labelframe):
@@ -152,20 +114,33 @@ class Export_Frame(ttk.Labelframe):
 
             self.bind("<Expose>", self.table)
 
+            self.grid_columnconfigure(0, weight=1)
+            self.grid_columnconfigure(1, weight=1)
+
             label1 = ttk.Label(self, text="Bitte Daten vor Export kontrollieren", font=("default", 11, "bold"), bootstyle="dark")
-            label1.grid(column=0, row=0, pady=10)
+            label1.grid(column=0, row=0, pady=10, columnspan=2)
 
             self.label2 = ttk.Label(self, text="", font=("default", 11, "bold"), bootstyle="dark")
-            self.label2.grid(column=0, row=1, pady=10)
+            self.label2.grid(column=0, row=1, pady=10, columnspan=2)
 
             self.frame = ttk.Frame(master=self)
-            self.frame.grid(column=0, row=2, pady=10)
+            self.frame.grid(column=0, row=2, pady=10, columnspan=2)
 
             button = ttk.Button(self, text="Als ICS exportieren", command=self.export)
-            button.grid(column=0, row=3, pady=10)
+            button.grid(column=0, row=3, pady=10, columnspan=2)
+
+            button2 = ttk.Button(self, text="Als Email senden an:", command=self.mail)
+            button2.grid(column=0, row=4, pady=10, padx=10, sticky="e")
+
+            entry = ttk.Entry(self, bootstyle="primary", width=40)
+            entry.grid(column=1, row=4, pady=10, sticky="w")
+
+            self.label3 = ttk.Label(self, text="", font=("default", 9), bootstyle="danger")
+            self.label3.grid(column=0, row=5, pady=10, columnspan=2)
 
             # variables
             self.parent = parent
+            self.entry = entry
 
         def table(self, *args):
             self.parent.reconfigure()
@@ -188,62 +163,31 @@ class Export_Frame(ttk.Labelframe):
                     for line in cal:
                         file.write(line)
                         file.write("\n")
-            self.parent.destroy()
+            
 
-
-class Shifts_Frame(ttk.Frame):
-        def __init__(self, parent):
-            super().__init__(parent)
-            self.grid_columnconfigure(0, weight=1)
-            self.grid_columnconfigure(1, weight=1)
-
-            self.bind("<Expose>", self.corr)
-
-            # variables
-            self.parent = parent
-            corr_shifts = [i for i in allowed_shifts]
-            self.sort_corr_shifts = sorted(corr_shifts)
-
-            label1 = tk.Label(self, text="Es konnten nicht alle Schichten ausgelesen werden, bitte korrigieren", font=("Helvetica", 11, "bold"), fg="red")
-            label1.grid(column=0, row=0, pady=10, columnspan=2)
-
-            self.label2 = tk.Label(self, text="", font=("Helvetica", 9))
-            self.label2.grid(column=0, row=1, pady=10, columnspan=2)
-
-            self.combobox = ttk.Combobox(self, values=self.sort_corr_shifts)
-            self.combobox['state'] = 'readonly'
-            self.combobox.grid(column=0, row=2, pady=10, padx=5, sticky="e")  
-
-            button1 = ttk.Button(self, text="Bestätigen", command=lambda: self.confirm(self.combobox))
-            button1.grid(column=1, row=2, pady=10, padx= 5, sticky="w")          
-
-            self.error_message = tk.Label(self, text="", font=("Helvetica", 9), fg="red")
-            self.error_message.grid(column=0, row=3, pady=10, columnspan=2)
-
-
-        def corr(self, *args):
-            self.error_message["text"] = ""
-            try:
-                s = int(list(schedule.bad_shifts.keys())[0])
-                self.label2["text"]=f"Schicht | {schedule.bad_shifts[s]} | am {s}. {schedule.month} wurde nicht erkannt, bitte korrekte Schicht eingeben:"
-            except:
-                pass
-
-                
-        def confirm(self, combobox):
-            shift = combobox.get()
-            if not shift:
-                self.error_message["text"] = "Keine Schicht ausgewählt"
+        def mail(self):
+            email = self.entry.get()
+            if check_mail(email) == False:
+                self.label3.config(bootstyle="danger")
+                self.label3["text"] = "Email Adresse ungültig"
             else:
-                s = int(list(schedule.bad_shifts.keys())[0])
-                index = s - 1
-                schedule.shifts[index] = shift
-                del schedule.bad_shifts[s]
-                if not schedule.bad_shifts:
-                    self.parent.raise_frame(self.parent.export_frame)
-                else:
-                    self.combobox.set("")
-                    self.corr()
+                c = ics_exporter(schedule.shifts, schedule.month, schedule.year)
+                cal = c.serialize().split() 
+                file_path = f"Dienstplan_{schedule.name}_{schedule.month}_{schedule.year}.ics"
+                try:
+                    with open(file_path, "w", encoding="utf-8") as file:
+                            for line in cal:
+                                file.write(line)
+                                file.write("\n")
+                    send_mail(file_path, schedule.name, schedule.month, schedule.year, email)
+                    self.label3.config(bootstyle="success")
+                    self.label3["text"] = "Email gesendet"
+                    os.remove(file_path)
+                except Exception as e:
+                    self.label3.config(bootstyle="danger")
+                    self.label3["text"] = f"Fehler: {e}"
+                    os.remove(file_path)
+
 
 
 if __name__ == "__main__":

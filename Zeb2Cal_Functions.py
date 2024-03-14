@@ -3,6 +3,13 @@ import re
 from ics import Calendar, Event
 from datetime import datetime, timedelta
 import pytz
+import smtplib, os
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
+from dotenv import load_dotenv
+_ = load_dotenv()
 
 
 allowed_shifts = {}
@@ -35,34 +42,10 @@ def parse_pdf(f):
             return table_s, month, year, name
     except:
         return None, None, None, None
-     
-
-def extract_schedule(shifts):
-    i = -1
-    bad_shifts = []
-    for shift in shifts:
-        i += 1
-        if not shift:
-            shift = "?"
-        if shift not in allowed_shifts:
-            while True:
-                if shift[0:2] in allowed_shifts:
-                    shifts[i] = shift[0:2]
-                    break
-                elif shift[0:1] in allowed_shifts:
-                    shifts[i] = shift[0:1]
-                    break
-                elif shift.upper() in allowed_shifts:
-                    shifts[i] = shift.upper()
-                    break
-                else:
-                    bad_shifts[(i + 1)] = shift
-                    break
-    return shifts, bad_shifts
 
 
 def ics_exporter(shifts, month, year):
-    c = Calendar(creator="shiftparse")
+    c = Calendar(creator="Zeb2Cal")
     i = 0
     local = pytz.timezone("Europe/Berlin")
     now = datetime.now()
@@ -90,3 +73,45 @@ def ics_exporter(shifts, month, year):
             c.events.add(e)
             i += 1
     return c
+
+
+def send_mail(file_path, name, month, year, email):
+    # Email Configuration
+    sender_email = os.environ.get("EMAIL_ADDRESS")
+    server_password = os.environ.get("EMAIL_PASSWORD")
+    receiver_email = email
+    subject = f"Dienstplan {name}"
+    body = f"Im Anhang finden sie den Dienstplan von {name} für {month}.{year}."
+
+    # Email Setup
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    message["Subject"] = subject
+
+    # Attach body
+    message.attach(MIMEText(body, "plain"))
+
+    # Attach file
+    with open(file_path, "rb") as attachment:
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(attachment.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f"attachment; filename= {os.path.basename(file_path)}")
+        message.attach(part)
+
+    # Sending Email
+    with smtplib.SMTP_SSL("smtp.strato.com", 465) as server:
+        server.login(sender_email, server_password)
+        server.sendmail(sender_email, receiver_email, message.as_string())
+
+
+def check_mail(email):
+    # Regular expression pattern for validating email addresses
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+    # Match the pattern with the email address
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
