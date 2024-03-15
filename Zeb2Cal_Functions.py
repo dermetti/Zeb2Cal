@@ -8,6 +8,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
+from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 _ = load_dotenv()
 
@@ -77,11 +78,29 @@ def ics_exporter(shifts, month, year):
 
 def send_mail(file_path, name, month, year, email):
     # Email Configuration
-    sender_email = os.environ.get("EMAIL_ADDRESS")
-    server_password = os.environ.get("EMAIL_PASSWORD")
+    sender_email_encrypt = os.environ.get("EMAIL_ADDRESS")
+    server_password_encrypt = os.environ.get("EMAIL_PASSWORD")
     receiver_email = email
     subject = f"Dienstplan {name}"
     body = f"Im Anhang finden sie den Dienstplan von {name} für {month}.{year}."
+
+    # decryption key
+    key = os.environ.get("KEY")
+
+    # prepare variables for encoding
+    while len(key) % 4 !=0:
+        key += "="
+    while len(sender_email_encrypt) % 4 !=0:
+        sender_email_encrypt += "="
+    while len(server_password_encrypt) % 4 !=0:
+        server_password_encrypt += "="
+    print(key)
+
+    # decrypt
+    fernet = Fernet(key.encode())
+    sender_email = fernet.decrypt(sender_email_encrypt).decode()
+    server_password = fernet.decrypt(server_password_encrypt).decode()
+    print(sender_email, server_password)
 
     # Email Setup
     message = MIMEMultipart()
