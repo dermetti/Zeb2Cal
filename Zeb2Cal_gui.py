@@ -1,10 +1,12 @@
-import tkinter as tk
+# gui for Zeb2Cal
+import webbrowser
 from tkinter import filedialog as fd
 import ttkbootstrap as ttk
-from Zeb2Cal_Functions import *
-import webbrowser
+from zeb2cal_functions import *
 
 
+
+# global variables
 class Schedule:
     def __init__(self, name=None, pdf_file=None, table=None, month=None, year=None, names=None, firstshift=None, lastschift=None, index=None, shifts=None, bad_shifts=None):
         self.name = name
@@ -22,6 +24,7 @@ class Schedule:
 schedule = Schedule()
 
 
+# main App
 class App(ttk.Window):
     def __init__(self):
         super().__init__(themename = "journal")
@@ -34,11 +37,11 @@ class App(ttk.Window):
         label = ttk.Label(self, text="Zeb2Cal ICS Kalender Export", font=("default", 24, "bold"), bootstyle="primary")
         label.grid(row=0, column=0, pady=10)
 
-        self.input_frame = Input_Frame(self)
+        self.input_frame = InputFrame(self)
         self.raise_frame(self.input_frame)
 
-        self.export_frame = Export_Frame(self)
-        
+        self.export_frame = ExportFrame(self)
+
     def raise_frame(self, frame):
         frame.grid(row=1, column=0, sticky="nsew", pady=10, padx=10)
         frame.tkraise()
@@ -47,7 +50,8 @@ class App(ttk.Window):
         self.geometry("800x400")
 
 
-class Input_Frame(ttk.Labelframe):
+# Input data Frame
+class InputFrame(ttk.Labelframe):
     def __init__(self, parent):
         super().__init__(parent, text = "einlesen")
 
@@ -60,15 +64,15 @@ class Input_Frame(ttk.Labelframe):
         label1.grid(column=0, row=rowcount, pady=10, columnspan=2)
 
         rowcount+=1
-        button1 = ttk.Button(self, text="Dienstplan suchen", command=lambda: self.open_file())
+        button1 = ttk.Button(self, text="Dienstplan suchen", command=self.open_file)
         button1.grid(column=0, row=rowcount, columnspan=2, pady=10)
 
         rowcount+=1
-        file_path = ttk.Label(self, text=f"Datei: nicht angegeben", font=("default", 9), bootstyle="info")
+        file_path = ttk.Label(self, text="Datei: nicht angegeben", font=("default", 9), bootstyle="info")
         file_path.grid(column=0, row=rowcount, columnspan=2, pady=10)
 
         rowcount+=1
-        analyze_btn = ttk.Button(self, text="Scannen", command=lambda: self.analyze(), state="disabled")
+        analyze_btn = ttk.Button(self, text="Scannen", command=self.analyze, state="disabled")
         analyze_btn.grid(column=0, row=rowcount, columnspan=2, pady=10)
 
         rowcount+=1
@@ -86,7 +90,7 @@ class Input_Frame(ttk.Labelframe):
         self.error_message = error_message
         self.parent = parent
 
-    def callback(_, url):
+    def callback(self, url):
         webbrowser.open_new(url)
 
     def open_file(self):
@@ -107,86 +111,86 @@ class Input_Frame(ttk.Labelframe):
 
 
 
-class Export_Frame(ttk.Labelframe):
-        def __init__(self, parent):
-            super().__init__(parent, text = "exportieren" )
-            self.grid_columnconfigure(0, weight=1)
+class ExportFrame(ttk.Labelframe):
+    def __init__(self, parent):
+        super().__init__(parent, text = "exportieren" )
+        self.grid_columnconfigure(0, weight=1)
 
-            self.bind("<Expose>", self.table)
+        self.bind("<Expose>", self.table)
 
-            self.grid_columnconfigure(0, weight=1)
-            self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
 
-            label1 = ttk.Label(self, text="Bitte Daten vor Export kontrollieren", font=("default", 11, "bold"), bootstyle="dark")
-            label1.grid(column=0, row=0, pady=10, columnspan=2)
+        label1 = ttk.Label(self, text="Bitte Daten vor Export kontrollieren", font=("default", 11, "bold"), bootstyle="dark")
+        label1.grid(column=0, row=0, pady=10, columnspan=2)
 
-            self.label2 = ttk.Label(self, text="", font=("default", 11, "bold"), bootstyle="dark")
-            self.label2.grid(column=0, row=1, pady=10, columnspan=2)
+        self.label2 = ttk.Label(self, text="", font=("default", 11, "bold"), bootstyle="dark")
+        self.label2.grid(column=0, row=1, pady=10, columnspan=2)
 
-            self.frame = ttk.Frame(master=self)
-            self.frame.grid(column=0, row=2, pady=10, columnspan=2)
+        self.frame = ttk.Frame(master=self)
+        self.frame.grid(column=0, row=2, pady=10, columnspan=2)
 
-            button = ttk.Button(self, text="Als ICS exportieren", command=self.export)
-            button.grid(column=0, row=3, pady=10, columnspan=2)
+        button = ttk.Button(self, text="Als ICS exportieren", command=self.export)
+        button.grid(column=0, row=3, pady=10, columnspan=2)
 
-            button2 = ttk.Button(self, text="Als Email senden an:", command=self.mail)
-            button2.grid(column=0, row=4, pady=10, padx=10, sticky="e")
+        button2 = ttk.Button(self, text="Als Email senden an:", command=self.mail)
+        button2.grid(column=0, row=4, pady=10, padx=10, sticky="e")
 
-            entry = ttk.Entry(self, bootstyle="primary", width=40)
-            entry.grid(column=1, row=4, pady=10, sticky="w")
+        entry = ttk.Entry(self, bootstyle="primary", width=40)
+        entry.grid(column=1, row=4, pady=10, sticky="w")
 
-            self.label3 = ttk.Label(self, text="", font=("default", 9), bootstyle="danger")
-            self.label3.grid(column=0, row=5, pady=10, columnspan=2)
+        self.label3 = ttk.Label(self, text="", font=("default", 9), bootstyle="danger")
+        self.label3.grid(column=0, row=5, pady=10, columnspan=2)
 
-            # variables
-            self.parent = parent
-            self.entry = entry
+        # variables
+        self.parent = parent
+        self.entry = entry
 
-        def table(self, *args):
-            self.parent.reconfigure()
-            self.label2["text"]=f"Dienstplan für {schedule.month}.{schedule.year}"
-            for i in range(2):
-                for j in range(len(schedule.shifts)):
-                    if i == 0:
-                        l = ttk.Label(master=self.frame, text=f"{(j + 1):02d}.", relief="ridge", bootstyle="dark", padding=2)
-                        l.grid(row=i, column=j, sticky="nsew")
-                    else:
-                        l = ttk.Label(master=self.frame, text=f"{schedule.shifts[j]}", relief="ridge", bootstyle="dark", padding=2)
-                        l.grid(row=i, column=j, sticky="nsew")
+    def table(self, *args):
+        self.parent.reconfigure()
+        self.label2["text"]=f"Dienstplan für {schedule.month}.{schedule.year}"
+        for i in range(2):
+            for j in range(len(schedule.shifts)):
+                if i == 0:
+                    l = ttk.Label(master=self.frame, text=f"{(j + 1):02d}.", relief="ridge", bootstyle="dark", padding=2)
+                    l.grid(row=i, column=j, sticky="nsew")
+                else:
+                    l = ttk.Label(master=self.frame, text=f"{schedule.shifts[j]}", relief="ridge", bootstyle="dark", padding=2)
+                    l.grid(row=i, column=j, sticky="nsew")
 
-        def export(self):
+    def export(self):
+        c = ics_exporter(schedule.shifts, schedule.month, schedule.year)
+        file_path = fd.asksaveasfilename(title="Dienstplan speichern", initialdir="/", initialfile=f"Dienstplan_{schedule.name}_{schedule.month}_{schedule.year}", filetypes=[("ICS Datei", "*.ics")], defaultextension=".ics")
+        cal = c.serialize().split()
+        if file_path:
+            with open(file_path, "w", encoding="utf-8") as file:
+                for line in cal:
+                    file.write(line)
+                    file.write("\n")
+
+
+    def mail(self):
+        email = self.entry.get()
+        if check_mail(email) is False:
+            self.label3.config(bootstyle="danger")
+            self.label3["text"] = "Email Adresse ungültig"
+        else:
             c = ics_exporter(schedule.shifts, schedule.month, schedule.year)
-            file_path = fd.asksaveasfilename(title="Dienstplan speichern", initialdir="/", initialfile=f"Dienstplan_{schedule.name}_{schedule.month}_{schedule.year}", filetypes=[("ICS Datei", "*.ics")], defaultextension=".ics")
-            cal = c.serialize().split()      
-            if file_path:          
+            cal = c.serialize().split()
+            file_path = f"Dienstplan_{schedule.name}_{schedule.month}_{schedule.year}.ics"
+            try:
                 with open(file_path, "w", encoding="utf-8") as file:
                     for line in cal:
                         file.write(line)
                         file.write("\n")
-            
-
-        def mail(self):
-            email = self.entry.get()
-            if check_mail(email) == False:
+                send_mail(file_path, schedule.name, schedule.month, schedule.year, email)
+                self.label3.config(bootstyle="success")
+                self.label3["text"] = "Email gesendet"
+                os.remove(file_path)
+            except Exception as e:
                 self.label3.config(bootstyle="danger")
-                self.label3["text"] = "Email Adresse ungültig"
-            else:
-                c = ics_exporter(schedule.shifts, schedule.month, schedule.year)
-                cal = c.serialize().split() 
-                file_path = f"Dienstplan_{schedule.name}_{schedule.month}_{schedule.year}.ics"
-                try:
-                    with open(file_path, "w", encoding="utf-8") as file:
-                            for line in cal:
-                                file.write(line)
-                                file.write("\n")
-                    send_mail(file_path, schedule.name, schedule.month, schedule.year, email)
-                    self.label3.config(bootstyle="success")
-                    self.label3["text"] = "Email gesendet"
-                    os.remove(file_path)
-                except Exception as e:
-                    self.label3.config(bootstyle="danger")
-                    self.label3["text"] = f"Fehler: {e}"
-                    os.remove(file_path)
+                self.label3["text"] = f"Fehler: {e}"
+                os.remove(file_path)
 
 
 

@@ -1,20 +1,19 @@
-import pdfplumber
+# this module contains the functions for Zeb2Cal_gui
+
 import re
-from ics import Calendar, Event
 from datetime import datetime, timedelta
-import pytz
 import smtplib
 import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
+import pdfplumber
+from ics import Calendar, Event
+import pytz
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 _ = load_dotenv()
-
-
-allowed_shifts = {}
 
 
 # parser with pdfplumber
@@ -59,18 +58,9 @@ def ics_exporter(shifts, month, year):
             e = Event()
             e.name = shift
             curr_day = start_day + timedelta(days=i)
-            if shift in allowed_shifts and allowed_shifts[shift] != []:
-                start = datetime.strptime(f"{curr_day.date()} {allowed_shifts[shift][0]}", "%Y-%m-%d %H:%M")
-                start_de = local.localize(start, is_dst=None)
-                start_utc = start_de.astimezone(pytz.utc)
-                end_utc = start_utc + timedelta(hours=float(allowed_shifts[shift][1]))
-                e.created = now
-                e.begin = f"{start_utc}"
-                e.end = f"{end_utc}"
-            else:
-                e.begin = curr_day
-                e.created = now
-                e.make_all_day()
+            e.begin = curr_day
+            e.created = now
+            e.make_all_day()
             c.events.add(e)
             i += 1
     return c
@@ -124,7 +114,7 @@ def send_mail(file_path, name, month, year, email):
         server.sendmail(sender_email, receiver_email, message.as_string())
 
 
-# check if user email is valid 
+# check if user email is valid
 def check_mail(email):
     # Regular expression pattern for validating email addresses
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
